@@ -40,3 +40,67 @@ patches:
           securityContext:
             seccompProfile:
               type: RuntimeDefault
+
+# Security hardening: Delete the LLMInferenceServiceConfig webhook first
+# This webhook validates DELETE operations, causing CI failures when the webhook
+# server isn't running. Delete the webhook before deleting the resources it protects.
+# Ref: https://github.com/kubeflow/manifests/issues/3290
+
+- patch: |
+     apiVersion: admissionregistration.k8s.io/v1
+     kind: ValidatingWebhookConfiguration
+     metadata:
+       name: llminferenceserviceconfig.serving.kserve.io
+     $patch: delete
+
+# Security hardening: Delete insecure LLMInferenceServiceConfig resources
+# These have dangerous capabilities (IPC_LOCK, SYS_RAWIO, NET_RAW),
+# runAsNonRoot: false, and readOnlyRootFilesystem: false
+
+- patch: |
+     apiVersion: serving.kserve.io/v1alpha1
+     kind: LLMInferenceServiceConfig
+     metadata:
+       name: kserve-config-llm-decode-template
+       namespace: kubeflow
+     $patch: delete
+
+- patch: |
+     apiVersion: serving.kserve.io/v1alpha1
+     kind: LLMInferenceServiceConfig
+     metadata:
+       name: kserve-config-llm-decode-worker-data-parallel
+       namespace: kubeflow
+     $patch: delete
+
+- patch: |
+     apiVersion: serving.kserve.io/v1alpha1
+     kind: LLMInferenceServiceConfig
+     metadata:
+       name: kserve-config-llm-worker-data-parallel
+       namespace: kubeflow
+     $patch: delete
+
+- patch: |
+     apiVersion: serving.kserve.io/v1alpha1
+     kind: LLMInferenceServiceConfig
+     metadata:
+       name: kserve-config-llm-template
+       namespace: kubeflow
+     $patch: delete
+
+- patch: |
+     apiVersion: serving.kserve.io/v1alpha1
+     kind: LLMInferenceServiceConfig
+     metadata:
+       name: kserve-config-llm-scheduler
+       namespace: kubeflow
+     $patch: delete
+
+- patch: |
+     apiVersion: serving.kserve.io/v1alpha1
+     kind: LLMInferenceServiceConfig
+     metadata:
+       name: kserve-config-llm-router-route
+       namespace: kubeflow
+     $patch: delete
